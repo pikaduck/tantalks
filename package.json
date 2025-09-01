@@ -1,6 +1,6 @@
 
   {
-      "name": "Podcast Website for Tantalks",
+      "name": "tantalks",
       "version": "0.1.0",
       "private": true,
       "dependencies": {
