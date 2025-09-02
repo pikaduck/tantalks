@@ -2,12 +2,14 @@ import React from 'react';
 import { Brain, Youtube, Music, Linkedin } from 'lucide-react';
 import { Button } from './ui/button';
 import { ContactForm } from './ContactForm';
+import { ProfileData } from '../utils/types';
 
 interface FooterProps {
   onNavigate: () => void;
+  profileData: ProfileData | null;
 }
 
-export function Footer({ onNavigate }: FooterProps) {
+export function Footer({ onNavigate, profileData }: FooterProps) {
   const scrollToSection = (id: string) => {
     onNavigate(); // Ensure we're on the home page
     setTimeout(() => {
@@ -56,7 +58,11 @@ export function Footer({ onNavigate }: FooterProps) {
               >
                 Blog
               </button>
-              <ContactForm />
+              <ContactForm>
+                <button className="text-muted hover:text-background transition-colors text-left text-sm">
+                  Contact
+                </button>
+              </ContactForm>
             </nav>
           </div>
 
@@ -90,7 +96,7 @@ export function Footer({ onNavigate }: FooterProps) {
                   LinkedIn
                 </a>
               </Button>
-              <ContactForm trigger={
+              <ContactForm>
                 <Button 
                   variant="ghost" 
                   size="sm" 
@@ -98,7 +104,7 @@ export function Footer({ onNavigate }: FooterProps) {
                 >
                   Get in Touch
                 </Button>
-              } />
+              </ContactForm>
             </div>
           </div>
         </div>

@@ -1,54 +1,44 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Textarea } from './ui/textarea';
-import { Badge } from './ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Switch } from './ui/switch';
-import { Label } from './ui/label';
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Save, 
-  Eye, 
-  EyeOff, 
-  Upload, 
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Textarea } from "./ui/textarea";
+import { Badge } from "./ui/badge";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "./ui/tabs";
+import { Switch } from "./ui/switch";
+import { Label } from "./ui/label";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Save,
+  Eye,
+  EyeOff,
+  Upload,
   ExternalLink,
   X,
   RefreshCw,
-  LogOut
-} from 'lucide-react';
-import { episodesApi, blogApi } from '../utils/api';
-import { RichBlogEditor } from './RichBlogEditor';
-import { ProfileManager } from './ProfileManager';
-import { ContactMessages } from './ContactMessages';
-
-interface Episode {
-  id: string;
-  title: string;
-  description: string;
-  duration: string;
-  publishDate: string;
-  thumbnail: string;
-  youtubeUrl?: string;
-  spotifyUrl?: string;
-  tags: string[];
-}
-
-interface BlogPost {
-  id: string;
-  title: string;
-  excerpt: string;
-  content: string;
-  publishDate: string;
-  readTime: string;
-  tags: string[];
-  featured?: boolean;
-  published: boolean;
-  thumbnail?: string;
-}
+  LogOut,
+} from "lucide-react";
+import { RichBlogEditor } from "./RichBlogEditor";
+import { ProfileManager } from "./ProfileManager";
+import { ContactMessages } from "./ContactMessages";
+import {
+  Episode,
+  BlogPost,
+  episodesApi,
+  blogApi,
+} from "../utils/api";
 
 interface AdminPanelProps {
   onClose: () => void;
@@ -57,37 +47,50 @@ interface AdminPanelProps {
   onLogout: () => void;
 }
 
-export function AdminPanel({ onClose, accessToken, onDataChange, onLogout }: AdminPanelProps) {
-  const [activeTab, setActiveTab] = useState('episodes');
+export function AdminPanel({
+  onClose,
+  accessToken,
+  onDataChange,
+  onLogout,
+}: AdminPanelProps) {
+  const [activeTab, setActiveTab] = useState("episodes");
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
-  const [isEditing, setIsEditing] = useState<string | null>(null);
-  const [editingType, setEditingType] = useState<'episode' | 'blog' | null>(null);
-  const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
+  const [isEditing, setIsEditing] = useState<string | null>(
+    null,
+  );
+  const [editingType, setEditingType] = useState<
+    "episode" | "blog" | null
+  >(null);
+  const [editingPost, setEditingPost] =
+    useState<BlogPost | null>(null);
   const [showRichEditor, setShowRichEditor] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   // Episode form state
   const [episodeForm, setEpisodeForm] = useState({
-    title: '',
-    description: '',
-    duration: '',
-    thumbnail: '',
-    youtubeUrl: '',
-    spotifyUrl: '',
-    tags: ''
+    title: "",
+    description: "",
+    duration: "",
+    thumbnail: "",
+    youtubeUrl: "",
+    spotifyUrl: "",
+    tags: "",
   });
 
   // Blog form state
   const [blogForm, setBlogForm] = useState({
-    title: '',
-    excerpt: '',
-    content: '',
-    readTime: '',
-    tags: '',
+    title: "",
+    excerpt: "",
+    content: "",
+    readTime: "",
+    tags: "",
     featured: false,
-    published: false
+    published: false,
   });
 
   // Load admin data
@@ -100,55 +103,70 @@ export function AdminPanel({ onClose, accessToken, onDataChange, onLogout }: Adm
     try {
       const [episodesData, blogData] = await Promise.all([
         episodesApi.getAll(),
-        blogApi.getAllAdmin(accessToken)
+        blogApi.getAllAdmin(accessToken),
       ]);
-      
+
       setEpisodes(episodesData);
       setBlogPosts(blogData);
     } catch (error) {
-      console.error('Error loading admin data:', error);
-      setMessage({ type: 'error', text: 'Failed to load data' });
+      console.error("Error loading admin data:", error);
+      setMessage({
+        type: "error",
+        text: "Failed to load data",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const showMessage = (type: 'success' | 'error', text: string) => {
+  const showMessage = (
+    type: "success" | "error",
+    text: string,
+  ) => {
     setMessage({ type, text });
     setTimeout(() => setMessage(null), 3000);
   };
 
   const handleAddEpisode = async () => {
     if (!episodeForm.title.trim()) return;
-    
+
     setIsLoading(true);
     try {
       const episodeData = {
         ...episodeForm,
-        tags: episodeForm.tags.split(',').map(tag => tag.trim()).filter(Boolean)
+        tags: episodeForm.tags
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean),
       };
 
-      const result = await episodesApi.create(episodeData, accessToken);
-      
+      const result = await episodesApi.create(
+        episodeData,
+        accessToken,
+      );
+
       if (result.success) {
-        showMessage('success', 'Episode created successfully');
+        showMessage("success", "Episode created successfully");
         setEpisodeForm({
-          title: '',
-          description: '',
-          duration: '',
-          thumbnail: '',
-          youtubeUrl: '',
-          spotifyUrl: '',
-          tags: ''
+          title: "",
+          description: "",
+          duration: "",
+          thumbnail: "",
+          youtubeUrl: "",
+          spotifyUrl: "",
+          tags: "",
         });
         await loadAdminData();
         onDataChange();
       } else {
-        showMessage('error', result.error || 'Failed to create episode');
+        showMessage(
+          "error",
+          result.error || "Failed to create episode",
+        );
       }
     } catch (error) {
-      console.error('Error creating episode:', error);
-      showMessage('error', 'Failed to create episode');
+      console.error("Error creating episode:", error);
+      showMessage("error", "Failed to create episode");
     } finally {
       setIsLoading(false);
     }
@@ -164,83 +182,114 @@ export function AdminPanel({ onClose, accessToken, onDataChange, onLogout }: Adm
 
   const handleAddBlogPost = async () => {
     if (!blogForm.title.trim()) return;
-    
+
     setIsLoading(true);
     try {
       // Auto-calculate reading time if not provided
-      const readTime = blogForm.readTime.trim() || calculateReadingTime(blogForm.content);
-      
+      const readTime =
+        blogForm.readTime.trim() ||
+        calculateReadingTime(blogForm.content);
+
       const postData = {
         ...blogForm,
         readTime,
-        tags: blogForm.tags.split(',').map(tag => tag.trim()).filter(Boolean)
+        tags: blogForm.tags
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean),
       };
 
-      const result = await blogApi.create(postData, accessToken);
-      
+      const result = await blogApi.create(
+        postData,
+        accessToken,
+      );
+
       if (result.success) {
-        showMessage('success', 'Blog post created successfully');
+        showMessage(
+          "success",
+          "Blog post created successfully",
+        );
         setBlogForm({
-          title: '',
-          excerpt: '',
-          content: '',
-          readTime: '',
-          tags: '',
+          title: "",
+          excerpt: "",
+          content: "",
+          readTime: "",
+          tags: "",
           featured: false,
-          published: false
+          published: false,
         });
         await loadAdminData();
         onDataChange();
       } else {
-        showMessage('error', result.error || 'Failed to create blog post');
+        showMessage(
+          "error",
+          result.error || "Failed to create blog post",
+        );
       }
     } catch (error) {
-      console.error('Error creating blog post:', error);
-      showMessage('error', 'Failed to create blog post');
+      console.error("Error creating blog post:", error);
+      showMessage("error", "Failed to create blog post");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDeleteEpisode = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this episode?')) return;
-    
+    if (
+      !confirm("Are you sure you want to delete this episode?")
+    )
+      return;
+
     setIsLoading(true);
     try {
       const result = await episodesApi.delete(id, accessToken);
-      
+
       if (result.success) {
-        showMessage('success', 'Episode deleted successfully');
+        showMessage("success", "Episode deleted successfully");
         await loadAdminData();
         onDataChange();
       } else {
-        showMessage('error', result.error || 'Failed to delete episode');
+        showMessage(
+          "error",
+          result.error || "Failed to delete episode",
+        );
       }
     } catch (error) {
-      console.error('Error deleting episode:', error);
-      showMessage('error', 'Failed to delete episode');
+      console.error("Error deleting episode:", error);
+      showMessage("error", "Failed to delete episode");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDeleteBlogPost = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this blog post?')) return;
-    
+    if (
+      !confirm(
+        "Are you sure you want to delete this blog post?",
+      )
+    )
+      return;
+
     setIsLoading(true);
     try {
       const result = await blogApi.delete(id, accessToken);
-      
+
       if (result.success) {
-        showMessage('success', 'Blog post deleted successfully');
+        showMessage(
+          "success",
+          "Blog post deleted successfully",
+        );
         await loadAdminData();
         onDataChange();
       } else {
-        showMessage('error', result.error || 'Failed to delete blog post');
+        showMessage(
+          "error",
+          result.error || "Failed to delete blog post",
+        );
       }
     } catch (error) {
-      console.error('Error deleting blog post:', error);
-      showMessage('error', 'Failed to delete blog post');
+      console.error("Error deleting blog post:", error);
+      showMessage("error", "Failed to delete blog post");
     } finally {
       setIsLoading(false);
     }
@@ -251,40 +300,55 @@ export function AdminPanel({ onClose, accessToken, onDataChange, onLogout }: Adm
     setShowRichEditor(true);
   };
 
-  const handleSaveBlogPost = async (postData: Omit<BlogPost, 'id'>) => {
+  const handleSaveBlogPost = async (
+    postData: Omit<BlogPost, "id">,
+  ) => {
     setIsLoading(true);
     try {
       let result;
       if (editingPost) {
         // Update existing post
-        result = await blogApi.update(editingPost.id, postData, accessToken);
-        showMessage('success', 'Blog post updated successfully');
+        result = await blogApi.update(
+          editingPost.id,
+          postData,
+          accessToken,
+        );
+        showMessage(
+          "success",
+          "Blog post updated successfully",
+        );
       } else {
         // Create new post
         result = await blogApi.create(postData, accessToken);
-        showMessage('success', 'Blog post created successfully');
+        showMessage(
+          "success",
+          "Blog post created successfully",
+        );
       }
-      
+
       if (result.success) {
         setShowRichEditor(false);
         setEditingPost(null);
         setBlogForm({
-          title: '',
-          excerpt: '',
-          content: '',
-          readTime: '',
-          tags: '',
+          title: "",
+          excerpt: "",
+          content: "",
+          readTime: "",
+          tags: "",
           featured: false,
-          published: false
+          published: false,
         });
         await loadAdminData();
         onDataChange();
       } else {
-        showMessage('error', result.error || 'Failed to save blog post');
+        showMessage(
+          "error",
+          result.error || "Failed to save blog post",
+        );
       }
     } catch (error) {
-      console.error('Error saving blog post:', error);
-      showMessage('error', 'Failed to save blog post');
+      console.error("Error saving blog post:", error);
+      showMessage("error", "Failed to save blog post");
     } finally {
       setIsLoading(false);
     }
@@ -308,21 +372,27 @@ export function AdminPanel({ onClose, accessToken, onDataChange, onLogout }: Adm
               onClick={loadAdminData}
               disabled={isLoading}
             >
-              <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw
+                className={`w-4 h-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+              />
               Refresh
             </Button>
           </div>
           <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={onLogout}
               className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
             >
               <LogOut className="w-4 h-4 mr-2" />
               Logout
             </Button>
-            <Button variant="ghost" size="icon" onClick={onClose}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+            >
               <X className="w-5 h-5" />
             </Button>
           </div>
@@ -330,28 +400,41 @@ export function AdminPanel({ onClose, accessToken, onDataChange, onLogout }: Adm
 
         {/* Message */}
         {message && (
-          <div className={`mx-6 mt-4 p-3 rounded-lg ${
-            message.type === 'success' 
-              ? 'bg-green-50 text-green-800 border border-green-200' 
-              : 'bg-red-50 text-red-800 border border-red-200'
-          }`}>
+          <div
+            className={`mx-6 mt-4 p-3 rounded-lg ${
+              message.type === "success"
+                ? "bg-green-50 text-green-800 border border-green-200"
+                : "bg-red-50 text-red-800 border border-red-200"
+            }`}
+          >
             {message.text}
           </div>
         )}
 
         {/* Content */}
         <div className="flex-1 overflow-hidden">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="h-full flex flex-col"
+          >
             <TabsList className="grid w-full grid-cols-4 m-6 mb-0">
-              <TabsTrigger value="episodes">Episodes</TabsTrigger>
+              <TabsTrigger value="episodes">
+                Episodes
+              </TabsTrigger>
               <TabsTrigger value="blog">Blog Posts</TabsTrigger>
               <TabsTrigger value="profile">Profile</TabsTrigger>
-              <TabsTrigger value="messages">Messages</TabsTrigger>
+              <TabsTrigger value="messages">
+                Messages
+              </TabsTrigger>
             </TabsList>
 
             <div className="flex-1 overflow-auto p-6">
               {/* Episodes Tab */}
-              <TabsContent value="episodes" className="space-y-6 m-0">
+              <TabsContent
+                value="episodes"
+                className="space-y-6 m-0"
+              >
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -365,7 +448,12 @@ export function AdminPanel({ onClose, accessToken, onDataChange, onLogout }: Adm
                         <Label>Title</Label>
                         <Input
                           value={episodeForm.title}
-                          onChange={(e) => setEpisodeForm({...episodeForm, title: e.target.value})}
+                          onChange={(e) =>
+                            setEpisodeForm({
+                              ...episodeForm,
+                              title: e.target.value,
+                            })
+                          }
                           placeholder="Episode title"
                         />
                       </div>
@@ -373,17 +461,27 @@ export function AdminPanel({ onClose, accessToken, onDataChange, onLogout }: Adm
                         <Label>Duration</Label>
                         <Input
                           value={episodeForm.duration}
-                          onChange={(e) => setEpisodeForm({...episodeForm, duration: e.target.value})}
+                          onChange={(e) =>
+                            setEpisodeForm({
+                              ...episodeForm,
+                              duration: e.target.value,
+                            })
+                          }
                           placeholder="e.g., 45 min"
                         />
                       </div>
                     </div>
-                    
+
                     <div>
                       <Label>Description</Label>
                       <Textarea
                         value={episodeForm.description}
-                        onChange={(e) => setEpisodeForm({...episodeForm, description: e.target.value})}
+                        onChange={(e) =>
+                          setEpisodeForm({
+                            ...episodeForm,
+                            description: e.target.value,
+                          })
+                        }
                         placeholder="Episode description"
                         rows={3}
                       />
@@ -394,7 +492,12 @@ export function AdminPanel({ onClose, accessToken, onDataChange, onLogout }: Adm
                         <Label>Thumbnail URL</Label>
                         <Input
                           value={episodeForm.thumbnail}
-                          onChange={(e) => setEpisodeForm({...episodeForm, thumbnail: e.target.value})}
+                          onChange={(e) =>
+                            setEpisodeForm({
+                              ...episodeForm,
+                              thumbnail: e.target.value,
+                            })
+                          }
                           placeholder="https://..."
                         />
                       </div>
@@ -402,7 +505,12 @@ export function AdminPanel({ onClose, accessToken, onDataChange, onLogout }: Adm
                         <Label>YouTube URL</Label>
                         <Input
                           value={episodeForm.youtubeUrl}
-                          onChange={(e) => setEpisodeForm({...episodeForm, youtubeUrl: e.target.value})}
+                          onChange={(e) =>
+                            setEpisodeForm({
+                              ...episodeForm,
+                              youtubeUrl: e.target.value,
+                            })
+                          }
                           placeholder="https://youtube.com/..."
                         />
                       </div>
@@ -410,7 +518,12 @@ export function AdminPanel({ onClose, accessToken, onDataChange, onLogout }: Adm
                         <Label>Spotify URL</Label>
                         <Input
                           value={episodeForm.spotifyUrl}
-                          onChange={(e) => setEpisodeForm({...episodeForm, spotifyUrl: e.target.value})}
+                          onChange={(e) =>
+                            setEpisodeForm({
+                              ...episodeForm,
+                              spotifyUrl: e.target.value,
+                            })
+                          }
                           placeholder="https://spotify.com/..."
                         />
                       </div>
@@ -420,14 +533,23 @@ export function AdminPanel({ onClose, accessToken, onDataChange, onLogout }: Adm
                       <Label>Tags (comma separated)</Label>
                       <Input
                         value={episodeForm.tags}
-                        onChange={(e) => setEpisodeForm({...episodeForm, tags: e.target.value})}
+                        onChange={(e) =>
+                          setEpisodeForm({
+                            ...episodeForm,
+                            tags: e.target.value,
+                          })
+                        }
                         placeholder="AI, Technology, Consciousness"
                       />
                     </div>
 
-                    <Button onClick={handleAddEpisode} className="w-full" disabled={isLoading}>
+                    <Button
+                      onClick={handleAddEpisode}
+                      className="w-full"
+                      disabled={isLoading}
+                    >
                       <Save className="w-4 h-4 mr-2" />
-                      {isLoading ? 'Adding...' : 'Add Episode'}
+                      {isLoading ? "Adding..." : "Add Episode"}
                     </Button>
                   </CardContent>
                 </Card>
@@ -439,29 +561,43 @@ export function AdminPanel({ onClose, accessToken, onDataChange, onLogout }: Adm
                       <CardContent className="p-4">
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
-                            <h4 className="font-semibold mb-2">{episode.title}</h4>
-                            <p className="text-sm text-muted-foreground mb-2">{episode.description}</p>
+                            <h4 className="font-semibold mb-2">
+                              {episode.title}
+                            </h4>
+                            <p className="text-sm text-muted-foreground mb-2">
+                              {episode.description}
+                            </p>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
                               <span>{episode.duration}</span>
                               <span>•</span>
                               <span>{episode.publishDate}</span>
                             </div>
                             <div className="flex gap-1 mt-2">
-                              {episode.tags.map(tag => (
-                                <Badge key={tag} variant="secondary" className="text-xs">
+                              {episode.tags.map((tag) => (
+                                <Badge
+                                  key={tag}
+                                  variant="secondary"
+                                  className="text-xs"
+                                >
                                   {tag}
                                 </Badge>
                               ))}
                             </div>
                           </div>
                           <div className="flex gap-2">
-                            <Button variant="ghost" size="sm" disabled={isLoading}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              disabled={isLoading}
+                            >
                               <Edit className="w-4 h-4" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleDeleteEpisode(episode.id)}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                handleDeleteEpisode(episode.id)
+                              }
                               disabled={isLoading}
                             >
                               <Trash2 className="w-4 h-4" />
@@ -475,7 +611,10 @@ export function AdminPanel({ onClose, accessToken, onDataChange, onLogout }: Adm
               </TabsContent>
 
               {/* Blog Tab */}
-              <TabsContent value="blog" className="space-y-6 m-0">
+              <TabsContent
+                value="blog"
+                className="space-y-6 m-0"
+              >
                 {showRichEditor ? (
                   <Card>
                     <CardContent className="p-6">
@@ -496,8 +635,8 @@ export function AdminPanel({ onClose, accessToken, onDataChange, onLogout }: Adm
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <Button 
-                        onClick={() => setShowRichEditor(true)} 
+                      <Button
+                        onClick={() => setShowRichEditor(true)}
                         className="w-full"
                         disabled={isLoading}
                       >
@@ -516,45 +655,72 @@ export function AdminPanel({ onClose, accessToken, onDataChange, onLogout }: Adm
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
-                              <h4 className="font-semibold">{post.title}</h4>
+                              <h4 className="font-semibold">
+                                {post.title}
+                              </h4>
                               {post.featured && (
-                                <Badge className="bg-primary text-primary-foreground text-xs">Featured</Badge>
+                                <Badge className="bg-primary text-primary-foreground text-xs">
+                                  Featured
+                                </Badge>
                               )}
-                              <Badge variant={post.published ? "default" : "secondary"} className="text-xs">
+                              <Badge
+                                variant={
+                                  post.published
+                                    ? "default"
+                                    : "secondary"
+                                }
+                                className="text-xs"
+                              >
                                 {post.published ? (
-                                  <><Eye className="w-3 h-3 mr-1" />Published</>
+                                  <>
+                                    <Eye className="w-3 h-3 mr-1" />
+                                    Published
+                                  </>
                                 ) : (
-                                  <><EyeOff className="w-3 h-3 mr-1" />Draft</>
+                                  <>
+                                    <EyeOff className="w-3 h-3 mr-1" />
+                                    Draft
+                                  </>
                                 )}
                               </Badge>
                             </div>
-                            <p className="text-sm text-muted-foreground mb-2">{post.excerpt}</p>
+                            <p className="text-sm text-muted-foreground mb-2">
+                              {post.excerpt}
+                            </p>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
                               <span>{post.readTime}</span>
                               <span>•</span>
                               <span>{post.publishDate}</span>
                             </div>
                             <div className="flex gap-1 mt-2">
-                              {post.tags.map(tag => (
-                                <Badge key={tag} variant="secondary" className="text-xs">
+                              {post.tags.map((tag) => (
+                                <Badge
+                                  key={tag}
+                                  variant="secondary"
+                                  className="text-xs"
+                                >
                                   {tag}
                                 </Badge>
                               ))}
                             </div>
                           </div>
                           <div className="flex gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleEditBlogPost(post)}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                handleEditBlogPost(post)
+                              }
                               disabled={isLoading}
                             >
                               <Edit className="w-4 h-4" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleDeleteBlogPost(post.id)}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                handleDeleteBlogPost(post.id)
+                              }
                               disabled={isLoading}
                             >
                               <Trash2 className="w-4 h-4" />
@@ -568,18 +734,22 @@ export function AdminPanel({ onClose, accessToken, onDataChange, onLogout }: Adm
               </TabsContent>
 
               {/* Profile Tab */}
-              <TabsContent value="profile" className="space-y-6 m-0">
+              <TabsContent
+                value="profile"
+                className="space-y-6 m-0"
+              >
                 <ProfileManager 
                   accessToken={accessToken} 
-                  onDataChange={onDataChange}
+                  onDataChange={onDataChange} 
                 />
               </TabsContent>
 
               {/* Messages Tab */}
-              <TabsContent value="messages" className="space-y-6 m-0">
-                <ContactMessages 
-                  accessToken={accessToken}
-                />
+              <TabsContent
+                value="messages"
+                className="space-y-6 m-0"
+              >
+                <ContactMessages accessToken={accessToken} />
               </TabsContent>
             </div>
           </Tabs>

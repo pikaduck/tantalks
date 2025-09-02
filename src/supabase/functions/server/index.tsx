@@ -386,17 +386,33 @@ app.get('/make-server-cd010421/profile', async (c) => {
 app.put('/make-server-cd010421/profile', async (c) => {
   try {
     const accessToken = c.req.header('Authorization')?.split(' ')[1];
+    console.log('Profile update - received token:', accessToken ? 'Token present' : 'No token');
+    
     if (!accessToken) {
-      return c.json({ error: 'Unauthorized' }, 401);
+      console.log('Profile update - no access token provided');
+      return c.json({ error: 'Unauthorized', code: 401, message: 'No access token provided' }, 401);
     }
 
     const { data: { user }, error: authError } = await supabase.auth.getUser(accessToken);
-    if (authError || !user?.id) {
-      console.log('Auth error while updating profile:', authError);
-      return c.json({ error: 'Unauthorized' }, 401);
+    
+    if (authError) {
+      console.log('Profile update - auth error:', authError);
+      return c.json({ 
+        error: 'Invalid or expired token', 
+        code: 401, 
+        message: 'Invalid JWT',
+        details: authError.message 
+      }, 401);
+    }
+    
+    if (!user?.id) {
+      console.log('Profile update - no user found');
+      return c.json({ error: 'User not found', code: 401, message: 'Invalid JWT' }, 401);
     }
 
+    console.log('Profile update - authenticated user:', user.id);
     const profileData = await c.req.json();
+    console.log('Profile update - data to save:', profileData);
     
     await kv.set('profile_data', {
       ...profileData,
@@ -404,6 +420,7 @@ app.put('/make-server-cd010421/profile', async (c) => {
       updatedAt: new Date().toISOString()
     });
 
+    console.log('Profile update - success');
     return c.json({ success: true });
   } catch (error) {
     console.log('Update profile error:', error);

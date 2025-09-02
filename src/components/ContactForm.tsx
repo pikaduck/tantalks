@@ -9,10 +9,10 @@ import { Mail, Send, X } from 'lucide-react';
 import { projectId } from '../utils/supabase/info';
 
 interface ContactFormProps {
-  trigger?: React.ReactNode;
+  children?: React.ReactNode;
 }
 
-export function ContactForm({ trigger }: ContactFormProps) {
+export function ContactForm({ children }: ContactFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -74,21 +74,19 @@ export function ContactForm({ trigger }: ContactFormProps) {
     }
   };
 
-  const defaultTrigger = (
-    <Button 
-      variant="ghost" 
-      size="sm" 
-      className="justify-start p-0 h-auto text-muted hover:text-background"
-    >
-      <Mail className="w-4 h-4 mr-2" />
-      Contact
-    </Button>
-  );
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        {trigger || defaultTrigger}
+        {children || (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="justify-start p-0 h-auto text-muted hover:text-background"
+          >
+            <Mail className="w-4 h-4 mr-2" />
+            Contact
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
