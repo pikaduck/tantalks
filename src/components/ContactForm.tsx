@@ -6,7 +6,7 @@ import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { Mail, Send, X } from 'lucide-react';
-import { projectId } from '../utils/supabase/info';
+import { contactApi } from '../utils/api';
 
 interface ContactFormProps {
   children?: React.ReactNode;
@@ -39,19 +39,9 @@ export function ContactForm({ children }: ContactFormProps) {
 
     setIsLoading(true);
     try {
-      const API_BASE = `https://${projectId}.supabase.co/functions/v1/make-server-cd010421`;
-      const response = await fetch(`${API_BASE}/contact`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
-      
-      const result = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to send message');
+      const response = await contactApi.sendMessage(formData);
+      if (!response["success"]) {
+        throw new Error(response["error"] || 'Failed to send message');
       }
       
       showMessage('success', 'Message sent successfully! We\'ll get back to you soon.');

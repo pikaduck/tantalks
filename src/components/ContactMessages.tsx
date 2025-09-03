@@ -9,17 +9,9 @@ import {
   User,
   MessageSquare
 } from 'lucide-react';
-import { projectId } from '../utils/supabase/info';
-
-interface ContactMessage {
-  id: string;
-  name: string;
-  email: string;
-  subject: string;
-  body: string;
-  timestamp: string;
-  status: 'new' | 'read' | 'replied';
-}
+import { contactApi } from '../utils/api';
+import { ContactMessage } from '../utils/types';
+import { encode } from 'punycode';
 
 interface ContactMessagesProps {
   accessToken: string;
@@ -38,20 +30,12 @@ export function ContactMessages({ accessToken }: ContactMessagesProps) {
   const loadMessages = async () => {
     setIsLoading(true);
     try {
-      const API_BASE = `https://${projectId}.supabase.co/functions/v1/make-server-cd010421`;
-      const response = await fetch(`${API_BASE}/contact/admin`, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        }
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to load messages');
+      const data = await contactApi.getMessages(accessToken);
+
+      if (!data) {
+        throw new Error(data["error"] || 'Failed to load messages');
       }
-      
-      setMessages(data.messages || []);
+      setMessages(data || []);
     } catch (error) {
       console.error('Error loading contact messages:', error);
       showMessage('error', 'Failed to load contact messages');
@@ -177,7 +161,10 @@ export function ContactMessages({ accessToken }: ContactMessagesProps) {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => window.open(`mailto:${msg.email}?subject=Re: ${msg.subject}`, '_blank')}
+                    // onClick={() => window.open(`mailto:${msg.email}?subject=Re: ${msg.subject}`, '_blank')}
+                    onClick={() => {
+                      window.location.href = `mailto:${msg.email}?subject=Re:${encodeURIComponent(msg.subject)}`;
+                    }}
                   >
                     <Mail className="w-4 h-4 mr-2" />
                     Reply via Email

@@ -33,12 +33,8 @@ import {
 import { RichBlogEditor } from "./RichBlogEditor";
 import { ProfileManager } from "./ProfileManager";
 import { ContactMessages } from "./ContactMessages";
-import {
-  Episode,
-  BlogPost,
-  episodesApi,
-  blogApi,
-} from "../utils/api";
+import { episodesApi, blogApi } from "../utils/api";
+import { Episode, BlogPost } from "../utils/types";
 
 interface AdminPanelProps {
   onClose: () => void;

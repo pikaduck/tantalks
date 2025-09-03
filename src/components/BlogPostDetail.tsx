@@ -1,23 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Calendar, Clock, ArrowLeft, Share2, BookmarkPlus } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { MarkdownRenderer } from './MarkdownRenderer';
-
-interface BlogPost {
-  id: string;
-  title: string;
-  excerpt: string;
-  content: string;
-  publishDate: string;
-  readTime: string;
-  tags: string[];
-  featured?: boolean;
-  published: boolean;
-  thumbnail?: string;
-}
+import { BlogPost, ProfileData } from '../utils/types';
+import { profileApi } from '../utils/api';
 
 interface BlogPostDetailProps {
   post: BlogPost;
@@ -25,6 +14,33 @@ interface BlogPostDetailProps {
 }
 
 export function BlogPostDetail({ post, onBack }: BlogPostDetailProps) {
+  const [author, setAuthor] = useState<ProfileData | null>({
+    "name": "Sakshi Tantak",
+    "photo": "https://media.licdn.com/dms/image/D4D03AQHh5bX3f1nXxg/profile-displayphoto-shrink_800_800/0/1683297034867?e=1693440000&v=beta&t=KXJtY8kYkLhYl2b1Uu8nRZ8jv6lG3F3cXoXoZy5cQzI",
+    "linkedinUrl": "https://www.linkedin.com/in/sakshi-tantak"
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchAuthor = async () => {
+    setIsLoading(true);
+    try {
+      const profile = await profileApi.getProfile();
+      setAuthor(profile);
+      setError(null);
+    } catch (error) {
+      console.error('Failed to fetch author profile', error);
+      setError('Failed to load author information');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAuthor();
+  }, []);
+  console.log("Author Profile : ", author);
+
   return (
     <div className="min-h-screen bg-background pt-20">
       <div className="container mx-auto px-4 py-12 max-w-4xl">
@@ -117,8 +133,8 @@ export function BlogPostDetail({ post, onBack }: BlogPostDetailProps) {
             <div className="flex items-start gap-6">
               <div className="w-20 h-20 rounded-full overflow-hidden flex-shrink-0">
                 <ImageWithFallback
-                  src="https://images.unsplash.com/photo-1712174766230-cb7304feaafe?w=200"
-                  alt="Sakshi Tantak"
+                  src={author.photo || ''}
+                  alt={author.name || ''}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -130,7 +146,7 @@ export function BlogPostDetail({ post, onBack }: BlogPostDetailProps) {
                 </p>
                 <Button variant="outline" asChild>
                   <a 
-                    href="https://linkedin.com/in/sakshitantak" 
+                    href={author.linkedinUrl}
                     target="_blank" 
                     rel="noopener noreferrer"
                   >

@@ -455,11 +455,13 @@ export const contactApi = {
     subject: string;
     body: string;
   }): Promise<{ success: boolean; error?: string }> {
+    console.log('Sending message ...', messageData);
     try {
       const response = await fetch(`${API_BASE}/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${publicAnonKey}`
         },
         body: JSON.stringify(messageData),
       });

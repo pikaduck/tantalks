@@ -4,18 +4,7 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Play, Clock, Calendar, ExternalLink } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-
-interface Episode {
-  id: string;
-  title: string;
-  description: string;
-  duration: string;
-  publishDate: string;
-  thumbnail: string;
-  youtubeUrl?: string;
-  spotifyUrl?: string;
-  tags: string[];
-}
+import { Episode } from '../utils/types';
 
 // Mock data - in real app this would come from backend
 const mockEpisodes: Episode[] = [

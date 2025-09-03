@@ -20,18 +20,7 @@ import {
   X
 } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-
-interface BlogPost {
-  id?: string;
-  title: string;
-  excerpt: string;
-  content: string;
-  readTime: string;
-  tags: string[];
-  featured?: boolean;
-  published: boolean;
-  thumbnail?: string;
-}
+import { BlogPost } from '../utils/types';
 
 interface RichBlogEditorProps {
   post?: BlogPost | null;
